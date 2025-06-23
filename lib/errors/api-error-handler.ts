@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { handlePrismaError, withDatabaseErrorHandling } from "./prisma-error-handler";
+import { createError } from "h3";
+import {
+  handlePrismaError,
+  withDatabaseErrorHandling,
+} from "./prisma-error-handler";
 
 /**
  * Generic API error handler that handles common error types
@@ -30,9 +34,7 @@ export function handleApiError(error: unknown): never {
 /**
  * Wrapper for API handlers that automatically handles common errors
  */
-export function withApiErrorHandling<T>(
-  handler: () => Promise<T>
-): Promise<T> {
+export function withApiErrorHandling<T>(handler: () => Promise<T>): Promise<T> {
   return handler().catch((error) => {
     handleApiError(error);
   });

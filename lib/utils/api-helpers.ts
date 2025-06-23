@@ -1,6 +1,12 @@
 import type { z } from "zod";
-import type { EventHandlerRequest, H3Event } from "h3";
-import { withFullErrorHandling } from "~/lib/errors/api-error-handler";
+import {
+  defineEventHandler,
+  readBody,
+  getQuery,
+  type EventHandlerRequest,
+  type H3Event,
+} from "h3";
+import { withFullErrorHandling } from "../errors/api-error-handler";
 
 /**
  * Creates a type-safe API handler with automatic error handling and validation

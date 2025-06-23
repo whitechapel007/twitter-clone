@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import type { H3Error } from "h3";
+import { createError, type H3Error } from "h3";
 
 export interface DatabaseErrorDetails {
   code: string;
@@ -77,7 +77,8 @@ const PRISMA_ERROR_MAP: Record<string, ErrorResponse> = {
     statusMessage: "Database connection failed",
     data: {
       error: "Database unavailable",
-      details: "Could not establish connection to the database. Please ensure the database server is running",
+      details:
+        "Could not establish connection to the database. Please ensure the database server is running",
     },
   },
 
@@ -141,7 +142,7 @@ export function handlePrismaError(error: unknown): H3Error {
   // Handle Prisma Client Known Request Errors
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     const errorConfig = PRISMA_ERROR_MAP[error.code];
-    
+
     if (errorConfig) {
       // Enhance error details with specific information from the error
       const enhancedData = {
@@ -152,7 +153,11 @@ export function handlePrismaError(error: unknown): H3Error {
 
       // Add specific details for certain error types
       if (error.code === "P2002" && error.meta?.target) {
-        enhancedData.details = `A record with this ${Array.isArray(error.meta.target) ? error.meta.target.join(", ") : error.meta.target} already exists`;
+        enhancedData.details = `A record with this ${
+          Array.isArray(error.meta.target)
+            ? error.meta.target.join(", ")
+            : error.meta.target
+        } already exists`;
       }
 
       return createError({
@@ -194,7 +199,8 @@ export function handlePrismaError(error: unknown): H3Error {
       statusMessage: "Database initialization failed",
       data: {
         error: "Database configuration error",
-        details: "Failed to initialize database client. Check your database configuration",
+        details:
+          "Failed to initialize database client. Check your database configuration",
       },
     });
   }
@@ -250,7 +256,9 @@ export async function withDatabaseErrorHandling<T>(
 /**
  * Type guard to check if an error is a Prisma error
  */
-export function isPrismaError(error: unknown): error is Prisma.PrismaClientKnownRequestError {
+export function isPrismaError(
+  error: unknown
+): error is Prisma.PrismaClientKnownRequestError {
   return error instanceof Prisma.PrismaClientKnownRequestError;
 }
 
