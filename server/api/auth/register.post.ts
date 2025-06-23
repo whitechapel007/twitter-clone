@@ -33,7 +33,6 @@ async function createUser(userData: RegisterUserInput) {
     data: {
       ...userData,
       password: hashedPassword,
-      profileImage: "https://example.com/default-avatar.png", // Replace with your own default image URL
     },
   });
 

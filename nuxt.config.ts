@@ -17,6 +17,9 @@ export default defineNuxtConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      exclude: ["@prisma/client"],
+    },
   },
   // Suppress Vue Router warnings for API routes
   router: {
