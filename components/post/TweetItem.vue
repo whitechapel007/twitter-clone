@@ -139,6 +139,31 @@
             <span class="text-sm">{{ formatNumber(tweet.stats.likes) }}</span>
           </button>
 
+          <!-- Views -->
+          <button
+            class="hidden md:flex items-center space-x-1 hover:text-blue-500 transition-colors duration-200 group"
+            @click.stop="handleViews"
+          >
+            <div
+              class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 transition-colors duration-200"
+            >
+              <ChartBarIcon class="w-4 h-4" />
+            </div>
+            <span class="text-sm">{{ formatNumber(tweet.stats.views) }}</span>
+          </button>
+
+          <!-- Share -->
+          <button
+            class="hidden md:flex items-center space-x-1 hover:text-blue-500 transition-colors duration-200 group"
+            @click.stop="handleShare"
+          >
+            <div
+              class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 transition-colors duration-200"
+            >
+              <ArrowUpTrayIcon class="w-4 h-4" />
+            </div>
+          </button>
+
           <!-- Bookmark -->
           <button
             class="flex items-center space-x-1 hover:text-blue-500 transition-colors duration-200 group"
@@ -165,6 +190,8 @@ import {
   ChatBubbleOvalLeftIcon,
   ArrowPathRoundedSquareIcon,
   HeartIcon,
+  ChartBarIcon,
+  ArrowUpTrayIcon,
   BookmarkIcon,
 } from "@heroicons/vue/24/outline";
 import {
@@ -274,6 +301,16 @@ const handleLike = () => {
   isLiked.value = !isLiked.value;
   console.log("Like:", props.tweet.id, isLiked.value);
   // Implement like functionality
+};
+
+const handleViews = () => {
+  console.log("Views for tweet:", props.tweet.id);
+  // Implement views functionality
+};
+
+const handleShare = () => {
+  console.log("Share tweet:", props.tweet.id);
+  // Implement share functionality
 };
 
 const handleBookmark = () => {
