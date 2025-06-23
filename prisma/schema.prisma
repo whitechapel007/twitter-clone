@@ -1,0 +1,23 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  username     String   @unique
+  name         String
+  email        String   @unique
+  password     String
+  profileImage String   @default("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face")
+  refreshToken String?  // <- add this
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
