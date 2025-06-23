@@ -97,7 +97,7 @@
         >
           <!-- Reply -->
           <button
-            class="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200 group"
+            class="flex items-center space-x-1 hover:text-blue-500 transition-colors duration-200 group"
             @click.stop="handleReply"
           >
             <div
@@ -110,7 +110,7 @@
 
           <!-- Retweet -->
           <button
-            class="flex items-center space-x-2 hover:text-green-500 transition-colors duration-200 group"
+            class="flex items-center space-x-1 hover:text-green-500 transition-colors duration-200 group"
             :class="{ 'text-green-500': isRetweeted }"
             @click.stop="handleRetweet"
           >
@@ -126,7 +126,7 @@
 
           <!-- Like -->
           <button
-            class="flex items-center space-x-2 hover:text-red-500 transition-colors duration-200 group"
+            class="flex items-center space-x-1 hover:text-red-500 transition-colors duration-200 group"
             :class="{ 'text-red-500': isLiked }"
             @click.stop="handleLike"
           >
@@ -139,34 +139,9 @@
             <span class="text-sm">{{ formatNumber(tweet.stats.likes) }}</span>
           </button>
 
-          <!-- Views -->
-          <button
-            class="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200 group"
-            @click.stop="handleViews"
-          >
-            <div
-              class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 transition-colors duration-200"
-            >
-              <ChartBarIcon class="w-4 h-4" />
-            </div>
-            <span class="text-sm">{{ formatNumber(tweet.stats.views) }}</span>
-          </button>
-
-          <!-- Share -->
-          <button
-            class="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200 group"
-            @click.stop="handleShare"
-          >
-            <div
-              class="p-2 rounded-full group-hover:bg-blue-100 dark:group-hover:bg-blue-900/20 transition-colors duration-200"
-            >
-              <ArrowUpTrayIcon class="w-4 h-4" />
-            </div>
-          </button>
-
           <!-- Bookmark -->
           <button
-            class="flex items-center space-x-2 hover:text-blue-500 transition-colors duration-200 group"
+            class="flex items-center space-x-1 hover:text-blue-500 transition-colors duration-200 group"
             :class="{ 'text-blue-500': isBookmarked }"
             @click.stop="handleBookmark"
           >
@@ -190,8 +165,6 @@ import {
   ChatBubbleOvalLeftIcon,
   ArrowPathRoundedSquareIcon,
   HeartIcon,
-  ChartBarIcon,
-  ArrowUpTrayIcon,
   BookmarkIcon,
 } from "@heroicons/vue/24/outline";
 import {
@@ -301,16 +274,6 @@ const handleLike = () => {
   isLiked.value = !isLiked.value;
   console.log("Like:", props.tweet.id, isLiked.value);
   // Implement like functionality
-};
-
-const handleViews = () => {
-  console.log("Views for tweet:", props.tweet.id);
-  // Implement views functionality
-};
-
-const handleShare = () => {
-  console.log("Share tweet:", props.tweet.id);
-  // Implement share functionality
 };
 
 const handleBookmark = () => {
