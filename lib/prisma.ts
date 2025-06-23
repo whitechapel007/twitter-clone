@@ -13,6 +13,14 @@ declare const globalThis: {
 
 const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
-export default prisma;
+// Ensure proper cleanup on process termination
+if (process.env.NODE_ENV !== "production") {
+  globalThis.prismaGlobal = prisma;
 
-if (process.env.NODE_ENV !== "production") globalThis.prismaGlobal = prisma;
+  // Handle graceful shutdown
+  process.on("beforeExit", async () => {
+    await prisma.$disconnect();
+  });
+}
+
+export default prisma;
