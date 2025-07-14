@@ -15,7 +15,7 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
-    "test:component": "vitest --run --include=**/*.spec.ts",
+    "test:run": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push"
   },
@@ -44,7 +44,7 @@
   "devDependencies": {
     "@vitest/ui": "^3.2.4",
     "@vue/test-utils": "^2.4.6",
-    "happy-dom": "^16.8.0",
+    "happy-dom": "^16.8.1",
     "vitest": "^3.2.4"
   }
 }
