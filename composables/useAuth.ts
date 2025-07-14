@@ -24,10 +24,17 @@ export const useAuth = () => {
 
   // Initialize token from localStorage on client side
   if (typeof window !== "undefined") {
-    const storedToken = localStorage.getItem("auth-token");
-    if (storedToken && !accessToken.value) {
-      accessToken.value = storedToken;
+    try {
+      const storedToken = localStorage.getItem("auth-token");
+      if (storedToken && !accessToken.value) {
+        accessToken.value = storedToken;
+      }
+    } catch (error) {
+      console.error("Error accessing localStorage:", error);
     }
+    isInitialized.value = true;
+  } else {
+    // On server side, mark as initialized to prevent blocking
     isInitialized.value = true;
   }
 

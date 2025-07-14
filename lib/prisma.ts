@@ -1,10 +1,16 @@
 import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-    errorFormat: "pretty",
-  });
+  try {
+    return new PrismaClient({
+      log:
+        process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      errorFormat: "pretty",
+    });
+  } catch (error) {
+    console.error("Failed to create Prisma client:", error);
+    throw error;
+  }
 };
 
 declare const globalThis: {

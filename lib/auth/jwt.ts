@@ -1,18 +1,24 @@
 import jwt from "jsonwebtoken";
 
-
 // JWT Configuration
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET!;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET!;
+const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
+const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 const ACCESS_TOKEN_EXPIRY = "15m"; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = "7d"; // 7 days
 
-// Validate that secrets are set
-if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
-  throw new Error(
-    "JWT secrets are not configured. Please set ACCESS_TOKEN_SECRET and REFRESH_TOKEN_SECRET in your .env file"
-  );
-}
+// Helper function to check if secrets are available
+const checkSecrets = () => {
+  if (!ACCESS_TOKEN_SECRET || !REFRESH_TOKEN_SECRET) {
+    console.error(
+      "JWT secrets are not configured. Please set ACCESS_TOKEN_SECRET and REFRESH_TOKEN_SECRET in your environment variables"
+    );
+    throw createError({
+      statusCode: 500,
+      statusMessage: "Server configuration error",
+      data: { error: "JWT_SECRETS_NOT_CONFIGURED" },
+    });
+  }
+};
 
 export interface TokenPayload {
   userId: string;
@@ -29,7 +35,8 @@ export interface TokenPair {
  * Generate access token (short-lived)
  */
 export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, ACCESS_TOKEN_SECRET, {
+  checkSecrets();
+  return jwt.sign(payload, ACCESS_TOKEN_SECRET!, {
     expiresIn: ACCESS_TOKEN_EXPIRY,
     issuer: "twitter-clone",
     audience: "twitter-clone-users",
@@ -40,7 +47,8 @@ export function generateAccessToken(payload: TokenPayload): string {
  * Generate refresh token (long-lived)
  */
 export function generateRefreshToken(payload: TokenPayload): string {
-  return jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+  checkSecrets();
+  return jwt.sign(payload, REFRESH_TOKEN_SECRET!, {
     expiresIn: REFRESH_TOKEN_EXPIRY,
     issuer: "twitter-clone",
     audience: "twitter-clone-users",
@@ -61,8 +69,9 @@ export function generateTokenPair(payload: TokenPayload): TokenPair {
  * Verify access token
  */
 export function verifyAccessToken(token: string): TokenPayload {
+  checkSecrets();
   try {
-    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET, {
+    const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET!, {
       issuer: "twitter-clone",
       audience: "twitter-clone-users",
     }) as TokenPayload;
@@ -96,8 +105,9 @@ export function verifyAccessToken(token: string): TokenPayload {
  * Verify refresh token
  */
 export function verifyRefreshToken(token: string): TokenPayload {
+  checkSecrets();
   try {
-    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET, {
+    const decoded = jwt.verify(token, REFRESH_TOKEN_SECRET!, {
       issuer: "twitter-clone",
       audience: "twitter-clone-users",
     }) as TokenPayload;

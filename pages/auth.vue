@@ -120,8 +120,17 @@
 <script setup lang="ts">
 import { ref } from "vue";
 
-import { useRegister } from "~/composables/useAuth";
-const { register } = useRegister();
+// Safely get auth composable with error handling
+let register: (data: AccountData) => Promise<unknown> = async () => {
+  throw new Error("Authentication system is not available");
+};
+
+try {
+  const auth = useAuth();
+  register = auth.register;
+} catch (error) {
+  console.error("Error initializing auth:", error);
+}
 
 definePageMeta({
   layout: "auth",
