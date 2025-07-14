@@ -5,7 +5,7 @@ import { z } from "zod";
 export interface DatabaseErrorDetails {
   code: string;
   message: string;
-  meta?: any;
+  meta?: Record<string, unknown>;
   clientVersion?: string;
 }
 
@@ -16,7 +16,7 @@ export interface ErrorResponse {
     error: string;
     details?: string;
     code?: string;
-    meta?: any;
+    meta?: Record<string, unknown>;
   };
 }
 
