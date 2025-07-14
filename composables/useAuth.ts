@@ -196,11 +196,33 @@ export const useAuth = () => {
 
       return response;
     } catch (error: unknown) {
-      const apiError = error as ApiError;
       console.error("Registration error:", error);
+
+      // Handle different types of errors
+      if (error && typeof error === "object") {
+        const apiError = error as ApiError;
+
+        // Check if it's a fetch error with data
+        if ("data" in apiError && apiError.data) {
+          throw createError({
+            statusCode: apiError.statusCode || 400,
+            statusMessage: apiError.data.message || "Registration failed",
+          });
+        }
+
+        // Check if it has statusCode directly
+        if ("statusCode" in apiError) {
+          throw createError({
+            statusCode: apiError.statusCode || 400,
+            statusMessage: "Registration failed",
+          });
+        }
+      }
+
+      // Fallback for unknown errors
       throw createError({
-        statusCode: apiError.statusCode || 400,
-        statusMessage: apiError.data?.message || "Registration failed",
+        statusCode: 500,
+        statusMessage: "Registration failed due to an unexpected error",
       });
     } finally {
       isLoading.value = false;

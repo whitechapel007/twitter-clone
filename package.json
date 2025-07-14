@@ -34,6 +34,7 @@
     "eslint": "^9.29.0",
     "eslint-config-prettier": "^9.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.17.0",
     "nuxt": "^3.17.5",
     "prisma": "^6.10.1",
     "tailwindcss": "^4.1.10",
