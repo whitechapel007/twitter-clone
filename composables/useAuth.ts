@@ -9,8 +9,19 @@ interface User {
 
 interface ApiError {
   statusCode?: number;
+  statusMessage?: string;
+  name?: string;
+  message?: string;
   data?: {
     message?: string;
+    error?: string;
+    details?: string;
+    validationErrors?: Array<{
+      message: string;
+      path: string[];
+    }>;
+    code?: string;
+    meta?: Record<string, unknown>;
   };
 }
 
@@ -122,11 +133,43 @@ export const useAuth = () => {
 
       return response;
     } catch (error: unknown) {
-      const apiError = error as ApiError;
       console.error("Login error:", error);
+
+      // Handle different error types
+      if (error && typeof error === "object") {
+        const apiError = error as ApiError;
+
+        // Handle API errors with structured response
+        if ("data" in apiError && apiError.data) {
+          // Check for specific error details
+          if (apiError.data.error && apiError.data.details) {
+            throw createError({
+              statusCode: apiError.statusCode || 401,
+              statusMessage: apiError.data.details || "Login failed",
+            });
+          }
+
+          // Handle general data errors
+          throw createError({
+            statusCode: apiError.statusCode || 401,
+            statusMessage:
+              apiError.data.message || apiError.data.error || "Login failed",
+          });
+        }
+
+        // Handle errors with status code but no data
+        if ("statusCode" in apiError) {
+          throw createError({
+            statusCode: apiError.statusCode || 401,
+            statusMessage: apiError.statusMessage || "Login failed",
+          });
+        }
+      }
+
+      // Fallback for unknown errors
       throw createError({
-        statusCode: apiError.statusCode || 401,
-        statusMessage: apiError.data?.message || "Login failed",
+        statusCode: 401,
+        statusMessage: "Login failed",
       });
     } finally {
       isLoading.value = false;
@@ -198,23 +241,72 @@ export const useAuth = () => {
     } catch (error: unknown) {
       console.error("Registration error:", error);
 
-      // Handle different types of errors
+      // Handle different error types
       if (error && typeof error === "object") {
         const apiError = error as ApiError;
 
-        // Check if it's a fetch error with data
+        // Handle API errors with structured response (from our error handler)
         if ("data" in apiError && apiError.data) {
+          // Check if it's a Prisma error with detailed information
+          if (apiError.data.error && apiError.data.details) {
+            throw createError({
+              statusCode: apiError.statusCode || 400,
+              statusMessage:
+                apiError.data.details ||
+                apiError.data.error ||
+                "Registration failed",
+            });
+          }
+
+          // Handle validation errors
+          if (apiError.data.validationErrors) {
+            const validationMessage = apiError.data.validationErrors
+              .map((err) => err.message)
+              .join(", ");
+            throw createError({
+              statusCode: 400,
+              statusMessage: `Validation error: ${validationMessage}`,
+            });
+          }
+
+          // Handle general data errors
           throw createError({
             statusCode: apiError.statusCode || 400,
-            statusMessage: apiError.data.message || "Registration failed",
+            statusMessage:
+              apiError.data.message ||
+              apiError.data.error ||
+              "Registration failed",
           });
         }
 
-        // Check if it has statusCode directly
+        // Handle errors with status code but no data
         if ("statusCode" in apiError) {
           throw createError({
             statusCode: apiError.statusCode || 400,
-            statusMessage: "Registration failed",
+            statusMessage: apiError.statusMessage || "Registration failed",
+          });
+        }
+
+        // Handle fetch/network errors
+        if (
+          apiError.name === "TypeError" ||
+          (apiError.message && apiError.message.includes("fetch"))
+        ) {
+          throw createError({
+            statusCode: 500,
+            statusMessage:
+              "Network error during registration. Please check your connection.",
+          });
+        }
+
+        // Handle timeout errors
+        if (
+          apiError.name === "AbortError" ||
+          (apiError.message && apiError.message.includes("timeout"))
+        ) {
+          throw createError({
+            statusCode: 408,
+            statusMessage: "Registration request timed out. Please try again.",
           });
         }
       }
