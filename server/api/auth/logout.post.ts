@@ -5,7 +5,7 @@ import type { TokenPayload } from "~/lib/auth/jwt";
 import prisma from "~/lib/prisma";
 
 async function logoutUser(
-  _input: {},
+  _input: unknown,
   event: H3Event<EventHandlerRequest>,
   user: TokenPayload
 ) {
