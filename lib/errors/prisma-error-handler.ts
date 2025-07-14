@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { createError, type H3Error } from "h3";
+import { z } from "zod";
 
 export interface DatabaseErrorDetails {
   code: string;
@@ -241,6 +242,19 @@ export function handlePrismaError(error: unknown): H3Error {
 }
 
 /**
+ * Check if an error is an H3Error (already handled)
+ */
+function isH3Error(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "statusCode" in error &&
+    "statusMessage" in error &&
+    typeof (error as Record<string, unknown>).statusCode === "number"
+  );
+}
+
+/**
  * Wrapper function for database operations with automatic error handling
  */
 export async function withDatabaseErrorHandling<T>(
@@ -249,6 +263,15 @@ export async function withDatabaseErrorHandling<T>(
   try {
     return await operation();
   } catch (error) {
+    // If it's already an H3Error, re-throw it as-is
+    if (isH3Error(error)) {
+      throw error;
+    }
+    // If it's a Zod validation error, re-throw it as-is (will be handled by API error handler)
+    if (error instanceof z.ZodError) {
+      throw error;
+    }
+    // Otherwise, handle as a Prisma error
     throw handlePrismaError(error);
   }
 }

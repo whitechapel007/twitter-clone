@@ -5,6 +5,15 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/image", "@nuxt/test-utils", "@nuxt/eslint"],
   css: ["~/assets/css/main.css"],
+  runtimeConfig: {
+    // Private keys (only available on server-side)
+    cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+    // Public keys (exposed to client-side)
+    public: {
+      cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
+    }
+  },
   app: {
     head: {
       meta: [

@@ -1,0 +1,239 @@
+name: Issue Automation
+
+on:
+  issues:
+    types: [opened, labeled, assigned]
+  issue_comment:
+    types: [created]
+
+jobs:
+  # Job 1: Auto-label new issues
+  auto-label-issues:
+    name: Auto-label Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    
+    steps:
+      - name: Label bug reports
+        if: contains(github.event.issue.title, 'bug') || contains(github.event.issue.body, 'bug')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['🐛 bug', 'needs-triage']
+            });
+
+      - name: Label feature requests
+        if: contains(github.event.issue.title, 'feature') || contains(github.event.issue.body, 'feature')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['✨ feature', 'enhancement', 'needs-discussion']
+            });
+
+      - name: Label documentation issues
+        if: contains(github.event.issue.title, 'docs') || contains(github.event.issue.title, 'documentation')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['📚 documentation', 'good first issue']
+            });
+
+      - name: Label performance issues
+        if: contains(github.event.issue.title, 'performance') || contains(github.event.issue.title, 'slow')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['⚡ performance', 'needs-investigation']
+            });
+
+  # Job 2: Welcome new contributors
+  welcome-contributors:
+    name: Welcome New Contributors
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    
+    steps:
+      - name: Check if first-time contributor
+        uses: actions/github-script@v6
+        id: check-contributor
+        with:
+          script: |
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              creator: context.payload.issue.user.login,
+              state: 'all'
+            });
+            
+            const { data: prs } = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'all'
+            });
+            
+            const userPRs = prs.filter(pr => pr.user.login === context.payload.issue.user.login);
+            const isFirstTime = issues.length === 1 && userPRs.length === 0;
+            
+            return isFirstTime;
+
+      - name: Welcome first-time contributor
+        if: steps.check-contributor.outputs.result == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const welcomeMessage = `
+            ## 👋 Welcome to the Twitter Clone project!
+            
+            Thank you for opening your first issue! We're excited to have you as part of our community.
+            
+            ### 📋 What happens next?
+            1. Our team will review your issue within 24-48 hours
+            2. We may ask for additional information or clarification
+            3. Once triaged, we'll assign appropriate labels and priority
+            
+            ### 🤝 Want to contribute?
+            - Check out our [Contributing Guide](CONTRIBUTING.md)
+            - Look for issues labeled \`good first issue\`
+            - Join our community discussions
+            
+            ### 📚 Helpful Resources:
+            - [Project Documentation](README.md)
+            - [Development Setup](docs/development.md)
+            - [Code of Conduct](CODE_OF_CONDUCT.md)
+            
+            Thanks again for your contribution! 🚀
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: welcomeMessage
+            });
+            
+            // Add welcome label
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['👋 first-time-contributor']
+            });
+
+  # Job 3: Auto-assign issues
+  auto-assign:
+    name: Auto-assign Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'labeled'
+    
+    steps:
+      - name: Assign bug issues to bug team
+        if: contains(github.event.label.name, 'bug')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addAssignees({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: ['bug-team-lead', 'senior-developer']
+            });
+
+      - name: Assign feature requests to product team
+        if: contains(github.event.label.name, 'feature')
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.addAssignees({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              assignees: ['product-manager', 'tech-lead']
+            });
+
+  # Job 4: Stale issue management
+  stale-issues:
+    name: Mark Stale Issues
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    
+    steps:
+      - name: Mark stale issues
+        uses: actions/stale@v8
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: |
+            ## 📅 This issue has been marked as stale
+            
+            This issue has been automatically marked as stale because it has not had recent activity. 
+            
+            ### What happens next?
+            - If no activity occurs within 7 days, this issue will be automatically closed
+            - To keep this issue open, simply add a comment or remove the `stale` label
+            
+            ### Need help?
+            - Review the issue description and ensure all necessary information is provided
+            - Check if this issue is still relevant to the current version
+            - Consider if this might be a duplicate of another issue
+            
+            Thank you for your contribution! 🙏
+          stale-pr-message: |
+            ## 📅 This pull request has been marked as stale
+            
+            This PR has been automatically marked as stale due to lack of recent activity.
+            
+            ### What happens next?
+            - If no activity occurs within 7 days, this PR will be automatically closed
+            - To keep this PR open, simply add a comment or remove the `stale` label
+            
+            ### Before this PR can be merged:
+            - Ensure all CI checks are passing
+            - Address any review comments
+            - Rebase if there are conflicts
+            
+            Thank you for your contribution! 🙏
+          close-issue-message: |
+            ## 🔒 This issue has been automatically closed
+            
+            This issue was automatically closed due to inactivity. 
+            
+            ### Want to reopen?
+            If this issue is still relevant, please:
+            1. Reopen the issue
+            2. Provide updated information
+            3. Confirm the issue still exists
+            
+            Thank you! 🙏
+          close-pr-message: |
+            ## 🔒 This pull request has been automatically closed
+            
+            This PR was automatically closed due to inactivity.
+            
+            ### Want to continue?
+            If you'd like to continue with this PR:
+            1. Reopen the pull request
+            2. Rebase against the latest main branch
+            3. Address any outstanding review comments
+            
+            Thank you for your contribution! 🙏
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'pinned,security,priority-high'
+          exempt-pr-labels: 'pinned,security,priority-high'

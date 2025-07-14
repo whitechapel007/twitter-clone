@@ -1,9 +1,22 @@
 import { z } from "zod";
-import { createError } from "h3";
+import { createError, type H3Error } from "h3";
 import {
   handlePrismaError,
   withDatabaseErrorHandling,
 } from "./prisma-error-handler";
+
+/**
+ * Check if an error is an H3Error
+ */
+function isH3Error(error: unknown): error is H3Error {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "statusCode" in error &&
+    "statusMessage" in error &&
+    typeof (error as Record<string, unknown>).statusCode === "number"
+  );
+}
 
 /**
  * Generic API error handler that handles common error types
@@ -23,7 +36,7 @@ export function handleApiError(error: unknown): never {
   }
 
   // If it's already an H3Error (from our error handler or manual throws), re-throw it
-  if (error && typeof error === "object" && "statusCode" in error) {
+  if (isH3Error(error)) {
     throw error;
   }
 

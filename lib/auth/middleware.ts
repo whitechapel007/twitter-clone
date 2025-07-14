@@ -1,4 +1,5 @@
 import type { EventHandlerRequest, H3Event } from "h3";
+import { getCookie, getHeader } from "h3";
 import {
   verifyAccessToken,
   extractTokenFromHeader,

@@ -1,0 +1,294 @@
+name: Release Automation
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+      prerelease:
+        description: 'Is this a pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  # Job 1: Create Release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      release-id: ${{ steps.create-release.outputs.id }}
+      upload-url: ${{ steps.create-release.outputs.upload_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build application
+        run: npm run build
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$LATEST_TAG" ]; then
+            echo "No previous tags found, generating changelog from first commit"
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --reverse)
+          else
+            echo "Generating changelog since $LATEST_TAG"
+            CHANGELOG=$(git log ${LATEST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
+          fi
+          
+          # Save changelog to file
+          echo "$CHANGELOG" > CHANGELOG.md
+          
+          # Set output for GitHub Actions
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Get version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create-release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## 🚀 Release ${{ steps.version.outputs.version }}
+            
+            ### 📋 Changes in this release:
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### 🔧 Technical Details:
+            - **Build Date**: ${{ github.event.head_commit.timestamp }}
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref }}
+            
+            ### 📦 Assets:
+            - Source code (zip)
+            - Source code (tar.gz)
+            - Build artifacts (see below)
+            
+            ### 🌐 Deployment:
+            - **Production**: https://your-twitter-clone.vercel.app
+            - **Staging**: https://your-twitter-clone-staging.vercel.app
+            
+            ---
+            
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ steps.changelog.outputs.previous_tag }}...${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: ${{ github.event.inputs.prerelease || false }}
+
+  # Job 2: Build and Upload Assets
+  build-assets:
+    name: Build and Upload Release Assets
+    runs-on: ubuntu-latest
+    needs: create-release
+    strategy:
+      matrix:
+        target: [production, staging]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build for ${{ matrix.target }}
+        run: |
+          if [ "${{ matrix.target }}" = "production" ]; then
+            npm run build
+          else
+            npm run build:staging
+          fi
+
+      - name: Create build archive
+        run: |
+          tar -czf twitter-clone-${{ matrix.target }}-build.tar.gz .output/
+          zip -r twitter-clone-${{ matrix.target }}-build.zip .output/
+
+      - name: Upload tar.gz asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload-url }}
+          asset_path: ./twitter-clone-${{ matrix.target }}-build.tar.gz
+          asset_name: twitter-clone-${{ matrix.target }}-build.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload zip asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload-url }}
+          asset_path: ./twitter-clone-${{ matrix.target }}-build.zip
+          asset_name: twitter-clone-${{ matrix.target }}-build.zip
+          asset_content_type: application/zip
+
+  # Job 3: Deploy to Production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [create-release, build-assets]
+    environment: production
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: '--prod'
+          scope: ${{ secrets.VERCEL_ORG_ID }}
+
+      - name: Update release with deployment info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.getRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release-id }}
+            });
+            
+            const updatedBody = release.body + `
+            
+            ## 🚀 Deployment Status
+            - ✅ **Production**: Successfully deployed
+            - 🌐 **Live URL**: https://your-twitter-clone.vercel.app
+            - ⏰ **Deployed at**: ${new Date().toISOString()}
+            `;
+            
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: ${{ needs.create-release.outputs.release-id }},
+              body: updatedBody
+            });
+
+  # Job 4: Post-Release Tasks
+  post-release:
+    name: Post-Release Tasks
+    runs-on: ubuntu-latest
+    needs: [create-release, deploy-production]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create post-release issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = '${{ needs.create-release.outputs.version }}';
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📋 Post-Release Tasks for ${version}`,
+              body: `## Post-Release Checklist for ${version}
+              
+              ### 🔍 Verification Tasks:
+              - [ ] Verify production deployment is working
+              - [ ] Check all critical user flows
+              - [ ] Verify authentication is working
+              - [ ] Test mobile responsiveness
+              - [ ] Check performance metrics
+              
+              ### 📊 Monitoring:
+              - [ ] Monitor error rates for 24 hours
+              - [ ] Check performance metrics
+              - [ ] Review user feedback
+              
+              ### 📢 Communication:
+              - [ ] Update team on release status
+              - [ ] Post release notes to team chat
+              - [ ] Update documentation if needed
+              
+              ### 🔄 Follow-up:
+              - [ ] Plan next release cycle
+              - [ ] Review release process improvements
+              
+              ---
+              
+              **Release**: ${version}
+              **Deployed**: ${new Date().toISOString()}
+              **Assignee**: @team-lead-username
+              `,
+              labels: ['release', 'post-release', 'high-priority'],
+              assignees: ['team-lead-username']
+            });
+
+      - name: Notify team
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          text: |
+            🚀 Release ${{ needs.create-release.outputs.version }} has been deployed!
+            
+            📦 **Release**: ${{ needs.create-release.outputs.version }}
+            🌐 **Production**: https://your-twitter-clone.vercel.app
+            📊 **Status**: ${{ job.status }}
+            
+            Please verify the deployment and complete post-release tasks.
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

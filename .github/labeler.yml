@@ -1,0 +1,200 @@
+# GitHub Labeler Configuration
+# Automatically applies labels to PRs based on file changes
+
+# Frontend Development
+"🎨 frontend":
+  - "**/*.vue"
+  - "**/*.ts"
+  - "**/*.js"
+  - "components/**/*"
+  - "pages/**/*"
+  - "layouts/**/*"
+  - "plugins/**/*"
+  - "middleware/**/*"
+
+# Styling & Design
+"💄 styling":
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/*.sass"
+  - "**/*.less"
+  - "assets/css/**/*"
+  - "assets/scss/**/*"
+
+# Components
+"🧩 components":
+  - "components/**/*"
+
+# Pages & Routing
+"📄 pages":
+  - "pages/**/*"
+  - "layouts/**/*"
+
+# Authentication & Auth
+"🔐 auth":
+  - "**/auth/**/*"
+  - "**/*auth*"
+  - "**/*login*"
+  - "**/*signin*"
+  - "**/*signup*"
+  - "middleware/auth*"
+
+# API & Server
+"🔌 api":
+  - "server/**/*"
+  - "api/**/*"
+  - "**/api/**/*"
+
+# Database
+"🗄️ database":
+  - "**/*db*"
+  - "**/*database*"
+  - "**/*migration*"
+  - "**/*schema*"
+  - "prisma/**/*"
+
+# Configuration
+"⚙️ config":
+  - "*.config.*"
+  - "nuxt.config.ts"
+  - "tailwind.config.js"
+  - "tsconfig.json"
+  - "package.json"
+  - ".env*"
+  - "*.json"
+
+# Dependencies
+"📦 dependencies":
+  - "package.json"
+  - "package-lock.json"
+  - "yarn.lock"
+  - "pnpm-lock.yaml"
+
+# Documentation
+"📚 documentation":
+  - "**/*.md"
+  - "docs/**/*"
+  - "README*"
+  - "CHANGELOG*"
+  - "CONTRIBUTING*"
+
+# Testing
+"🧪 testing":
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "tests/**/*"
+  - "test/**/*"
+  - "__tests__/**/*"
+  - "cypress/**/*"
+  - "jest.config.*"
+  - "vitest.config.*"
+
+# CI/CD & DevOps
+"🚀 ci-cd":
+  - ".github/**/*"
+  - "Dockerfile*"
+  - "docker-compose*"
+  - ".dockerignore"
+  - "vercel.json"
+  - "netlify.toml"
+
+# Performance
+"⚡ performance":
+  - "**/*performance*"
+  - "**/*optimize*"
+  - "**/*lazy*"
+  - "**/*bundle*"
+
+# Security
+"🔒 security":
+  - "**/*security*"
+  - "**/*auth*"
+  - "**/*permission*"
+  - "**/*role*"
+  - ".env*"
+
+# Bug Fixes
+"🐛 bug":
+  - "**/*fix*"
+  - "**/*bug*"
+  - "**/*patch*"
+
+# Features
+"✨ feature":
+  - "**/*feature*"
+  - "**/*feat*"
+  - "**/*new*"
+
+# Refactoring
+"♻️ refactor":
+  - "**/*refactor*"
+  - "**/*cleanup*"
+  - "**/*reorganize*"
+
+# Chores
+"🧹 chore":
+  - "**/*chore*"
+  - "**/*maintenance*"
+  - "**/*update*"
+
+# Assets & Media
+"🖼️ assets":
+  - "assets/**/*"
+  - "static/**/*"
+  - "public/**/*"
+  - "**/*.png"
+  - "**/*.jpg"
+  - "**/*.jpeg"
+  - "**/*.gif"
+  - "**/*.svg"
+  - "**/*.ico"
+  - "**/*.webp"
+
+# Fonts
+"🔤 fonts":
+  - "**/*.woff*"
+  - "**/*.ttf"
+  - "**/*.otf"
+  - "**/*.eot"
+  - "assets/fonts/**/*"
+
+# Mobile Responsiveness
+"📱 mobile":
+  - "**/*mobile*"
+  - "**/*responsive*"
+  - "**/*breakpoint*"
+
+# Accessibility
+"♿ accessibility":
+  - "**/*a11y*"
+  - "**/*accessibility*"
+  - "**/*aria*"
+  - "**/*wcag*"
+
+# Internationalization
+"🌍 i18n":
+  - "**/*i18n*"
+  - "**/*locale*"
+  - "**/*translation*"
+  - "locales/**/*"
+  - "lang/**/*"
+
+# Social Features (Twitter-specific)
+"🐦 social":
+  - "**/*tweet*"
+  - "**/*post*"
+  - "**/*feed*"
+  - "**/*timeline*"
+  - "**/*follow*"
+  - "**/*like*"
+  - "**/*retweet*"
+
+# UI/UX
+"🎨 ui-ux":
+  - "**/*ui*"
+  - "**/*ux*"
+  - "**/*design*"
+  - "**/*theme*"
+  - "**/*modal*"
+  - "**/*dialog*"
+  - "**/*tooltip*"

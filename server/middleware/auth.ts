@@ -1,6 +1,6 @@
 // ~/server/middleware/auth.ts
 
-import { getCookie, getHeader } from "h3";
+import { getHeader } from "h3";
 import { verifyAccessToken, extractTokenFromHeader } from "~/lib/auth/jwt";
 
 export default defineEventHandler(async (event) => {
@@ -12,6 +12,7 @@ export default defineEventHandler(async (event) => {
     "/api/tweets",
     "/api/profile",
     // Add more protected paths here
+    // Note: /api/auth/refresh is NOT protected since it's used to get new tokens
   ];
 
   // Skip auth for public routes
@@ -23,13 +24,9 @@ export default defineEventHandler(async (event) => {
     return; // Skip authentication for public routes
   }
 
-  // Try to get token from cookies first, then Authorization header
-  let token = getCookie(event, "access_token") || null;
-
-  if (!token) {
-    const authHeader = getHeader(event, "authorization");
-    token = extractTokenFromHeader(authHeader) || null;
-  }
+  // Try to get token from Authorization header first
+  const authHeader = getHeader(event, "authorization");
+  const token = extractTokenFromHeader(authHeader) || null;
 
   if (!token) {
     throw createError({

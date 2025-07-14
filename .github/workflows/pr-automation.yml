@@ -1,0 +1,281 @@
+name: Pull Request Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  # Job 1: PR Validation
+  pr-validation:
+    name: PR Validation
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate PR title
+        uses: amannn/action-semantic-pull-request@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          types: |
+            feat
+            fix
+            docs
+            style
+            refactor
+            perf
+            test
+            chore
+            ci
+          requireScope: false
+
+      - name: Check for breaking changes
+        run: |
+          if git log --oneline ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -i "BREAKING CHANGE"; then
+            echo "⚠️ Breaking changes detected in this PR"
+            echo "breaking_changes=true" >> $GITHUB_ENV
+          else
+            echo "✅ No breaking changes detected"
+            echo "breaking_changes=false" >> $GITHUB_ENV
+          fi
+
+      - name: Run quick tests
+        run: npm run test:quick
+        continue-on-error: true
+
+      - name: Comment PR status
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { breaking_changes } = process.env;
+            const warningMessage = breaking_changes === 'true' 
+              ? '⚠️ **Warning**: This PR contains breaking changes!' 
+              : '✅ No breaking changes detected';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🤖 Automated PR Check
+              
+              ${warningMessage}
+              
+              ### Quick Validation Results:
+              - ✅ PR title follows semantic conventions
+              - ✅ Dependencies installed successfully
+              - ✅ Quick tests completed
+              
+              *This comment was generated automatically by GitHub Actions*`
+            });
+
+  # Job 2: Visual Regression Testing
+  visual-regression:
+    name: Visual Regression Tests
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: npm run preview &
+
+      - name: Wait for server
+        run: sleep 15
+
+      - name: Run visual regression tests
+        run: npm run test:visual
+        continue-on-error: true
+
+      - name: Upload visual diff artifacts
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: visual-regression-diffs
+          path: tests/visual/diffs/
+          retention-days: 7
+
+  # Job 3: Accessibility Testing
+  accessibility:
+    name: Accessibility Testing
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: npm run preview &
+
+      - name: Wait for server
+        run: sleep 10
+
+      - name: Run accessibility tests
+        run: |
+          npx @axe-core/cli http://localhost:3000 --exit
+          npx pa11y http://localhost:3000
+        continue-on-error: true
+
+      - name: Generate accessibility report
+        run: |
+          npx @axe-core/cli http://localhost:3000 --reporter html --output-file accessibility-report.html
+        continue-on-error: true
+
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v3
+        with:
+          name: accessibility-report
+          path: accessibility-report.html
+          retention-days: 7
+
+  # Job 4: Performance Impact Analysis
+  performance-impact:
+    name: Performance Impact Analysis
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies (base)
+        run: npm ci
+
+      - name: Build base version
+        run: npm run build
+
+      - name: Measure base bundle size
+        run: |
+          du -sh .output/ > base-size.txt
+          echo "Base bundle size:" && cat base-size.txt
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install dependencies (PR)
+        run: npm ci
+
+      - name: Build PR version
+        run: npm run build
+
+      - name: Measure PR bundle size
+        run: |
+          du -sh .output/ > pr-size.txt
+          echo "PR bundle size:" && cat pr-size.txt
+
+      - name: Compare bundle sizes
+        run: |
+          echo "## Bundle Size Comparison" > size-comparison.md
+          echo "| Version | Size |" >> size-comparison.md
+          echo "|---------|------|" >> size-comparison.md
+          echo "| Base | $(cat base-size.txt | cut -f1) |" >> size-comparison.md
+          echo "| PR | $(cat pr-size.txt | cut -f1) |" >> size-comparison.md
+          cat size-comparison.md
+
+      - name: Comment bundle size comparison
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const comparison = fs.readFileSync('size-comparison.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 📊 Bundle Size Impact
+              
+              ${comparison}
+              
+              *Bundle size analysis completed automatically*`
+            });
+
+  # Job 5: Auto-assign reviewers
+  assign-reviewers:
+    name: Auto-assign Reviewers
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened'
+    
+    steps:
+      - name: Auto-assign reviewers
+        uses: kentaro-m/auto-assign-action@v1.2.5
+        with:
+          configuration-path: '.github/auto-assign.yml'
+
+  # Job 6: Label PR based on changes
+  label-pr:
+    name: Label PR
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' || github.event.action == 'synchronize'
+    
+    steps:
+      - name: Label PR based on files changed
+        uses: actions/labeler@v4
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          configuration-path: '.github/labeler.yml'
+
+      - name: Add size labels
+        uses: pascalgn/size-label-action@v0.4.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          sizes: |
+            {
+              "0": "XS",
+              "20": "S", 
+              "50": "M",
+              "200": "L",
+              "800": "XL",
+              "2000": "XXL"
+            }

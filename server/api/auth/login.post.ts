@@ -62,7 +62,7 @@ async function loginUser(
   });
 
   // Return user data with tokens (exclude password)
-  const { password, ...safeUser } = user;
+  const { password,refreshToken, ...safeUser } = user;
 
   return {
     user: safeUser,

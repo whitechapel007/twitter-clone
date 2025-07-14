@@ -30,6 +30,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
+import { useAuth } from "~/composables/useAuth";
 
 // Define tabs data
 const tabs = [
@@ -80,5 +81,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("scroll", handleScroll);
+});
+
+const { accessToken } = useAuth();
+const { refreshToken } = useAuth();
+
+onMounted(async () => {
+  if (!accessToken.value) {
+    await refreshToken();
+  }
 });
 </script>

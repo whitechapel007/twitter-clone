@@ -1,0 +1,102 @@
+# Auto-assign configuration for pull requests
+# This file configures automatic reviewer assignment
+
+# Reviewers to be assigned to pull requests
+reviewers:
+  # Add GitHub usernames of team members who should review PRs
+  - "team-lead-username"
+  - "senior-dev-username"
+  - "frontend-expert-username"
+
+# Number of reviewers to assign (will pick randomly from the list above)
+numberOfReviewers: 2
+
+# Assignees for the PR (usually the PR author, but can include others)
+assignees:
+  - "project-manager-username"
+
+# Number of assignees
+numberOfAssignees: 1
+
+# Skip certain users (e.g., bots, inactive members)
+skipKeywords:
+  - "bot"
+  - "dependabot"
+  - "renovate"
+
+# Only assign reviewers if PR is not in draft mode
+skipDraftPR: true
+
+# Configuration for different types of changes
+reviewers:
+  # Frontend changes
+  "**/*.vue":
+    - "frontend-dev-1"
+    - "frontend-dev-2"
+  
+  # Component changes
+  "components/**":
+    - "ui-specialist"
+    - "frontend-lead"
+  
+  # API/Backend changes
+  "server/**":
+    - "backend-dev-1"
+    - "backend-dev-2"
+  
+  # Configuration changes
+  "*.config.*":
+    - "devops-engineer"
+    - "tech-lead"
+  
+  # Documentation changes
+  "**/*.md":
+    - "tech-writer"
+    - "documentation-maintainer"
+  
+  # GitHub Actions/CI changes
+  ".github/**":
+    - "devops-engineer"
+    - "ci-cd-specialist"
+
+# Add labels based on file changes
+addLabels:
+  # Frontend labels
+  "frontend":
+    - "**/*.vue"
+    - "**/*.ts"
+    - "**/*.js"
+    - "components/**"
+    - "pages/**"
+    - "layouts/**"
+  
+  # Styling labels  
+  "styling":
+    - "**/*.css"
+    - "**/*.scss"
+    - "**/*.sass"
+    - "assets/css/**"
+  
+  # Configuration labels
+  "config":
+    - "*.config.*"
+    - "package.json"
+    - "tsconfig.json"
+    - "nuxt.config.ts"
+  
+  # Documentation labels
+  "documentation":
+    - "**/*.md"
+    - "docs/**"
+  
+  # CI/CD labels
+  "ci-cd":
+    - ".github/**"
+    - "Dockerfile"
+    - "docker-compose.yml"
+  
+  # Dependencies labels
+  "dependencies":
+    - "package.json"
+    - "package-lock.json"
+    - "yarn.lock"
