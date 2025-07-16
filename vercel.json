@@ -1,11 +1,6 @@
 {
   "buildCommand": "npm run vercel-build",
   "framework": "nuxtjs",
-  "functions": {
-    "server/api/**/*.ts": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "PRISMA_GENERATE_DATAPROXY": "true"
   },
