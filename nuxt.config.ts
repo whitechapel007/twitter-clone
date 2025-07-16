@@ -5,15 +5,25 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/image", "@nuxt/test-utils", "@nuxt/eslint"],
   css: ["~/assets/css/main.css"],
+
   runtimeConfig: {
     // Private keys (only available on server-side)
     cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET,
+    databaseUrl: process.env.DATABASE_URL,
+
     // Public keys (exposed to client-side)
     public: {
       cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME,
       cloudinaryApiKey: process.env.CLOUDINARY_API_KEY,
-    }
+      apiBase:
+        process.env.NODE_ENV === "production"
+          ? process.env.VERCEL_URL
+            ? `https://${process.env.VERCEL_URL}`
+            : "https://your-app.vercel.app" // Replace with your actual domain
+          : "http://localhost:3000",
+    },
   },
+
   app: {
     head: {
       meta: [
@@ -24,6 +34,7 @@ export default defineNuxtConfig({
       ],
     },
   },
+
   vite: {
     plugins: [tailwindcss()],
     optimizeDeps: {
@@ -41,12 +52,14 @@ export default defineNuxtConfig({
       },
     },
   },
+
   // Suppress Vue Router warnings for API routes
   router: {
     options: {
       strict: false,
     },
   },
+
   // Nitro configuration for server-side only modules
   nitro: {
     experimental: {
@@ -57,17 +70,22 @@ export default defineNuxtConfig({
         target: "esnext",
       },
     },
-    externals: {
-      inline: [],
-    },
     rollupConfig: {
       external: ["@prisma/client", ".prisma/client"],
     },
+    // Vercel configuration
+    vercel: {
+      functions: {
+        maxDuration: 30,
+      },
+    },
   },
+
   // Build configuration
   build: {
     transpile: ["@prisma/client"],
   },
+
   // Ensure Prisma is only used server-side
   ssr: true,
 });
