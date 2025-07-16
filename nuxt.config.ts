@@ -79,11 +79,15 @@ export default defineNuxtConfig({
         maxDuration: 30,
       },
     },
+    // Ensure Prisma client is bundled properly
+    moduleSideEffects: ["@prisma/client"],
+    // Include Prisma in the bundle
+    bundledStorage: ["@prisma/client"],
   },
 
   // Build configuration
   build: {
-    transpile: ["@prisma/client"],
+    transpile: ["@prisma/client", ".prisma/client"],
   },
 
   // Ensure Prisma is only used server-side
