@@ -9,7 +9,10 @@ export default defineNuxtConfig({
   modules: ["@prisma/nuxt"],
 
   prisma: {
-    forcePush: false, // This prevents automatic db push
+    client: {
+      enable: false,
+    },
+    seed: false, // This prevents automatic db push
     autoSetupPrisma: false, // This prevents auto-setup prompts
     formatSchema: false,
     installCLI: false,
