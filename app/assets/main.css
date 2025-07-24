@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+/* TwitterChirp Font Definitions - Local Files */
+@font-face {
+  font-family: "TwitterChirp";
+  src: url("~/assets/fonts/twitterchirp/twitterchirp.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  /* Custom Breakpoints */
+  --breakpoint-xs: 614px;
+  --breakpoint-sm: 1002px;
+  --breakpoint-md: 1022px;
+  --breakpoint-lg: 1092px;
+  --breakpoint-xl: 1280px;
+
+  /* Custom Color Palette */
+  --color-dim-50: #5f99f7;
+  --color-dim-100: #5f99f7;
+  --color-dim-200: #38444d;
+  --color-dim-300: #202e3a;
+  --color-dim-400: #253341;
+  --color-dim-500: #5f99f7;
+  --color-dim-600: #5f99f7;
+  --color-dim-700: #192734;
+  --color-dim-800: #162d40;
+  --color-dim-900: #15202b;
+  --color-white: #e7e9ea;
+  --color-text-black: #71767b;
+  --color-show-more: #1d9bf0;
+  --color-border: rgb(47, 51, 54);
+  --color-button: #eff3f4;
+
+  /* Font Family - Twitter's actual font stack */
+  --font-family-sans: "TwitterChirp", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Configure dark mode to use class-based toggling */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Set TwitterChirp as the main font on body */
+body {
+  font-family: "TwitterChirp", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Custom toast styling for dark mode compatibility */
+.Vue-Toastification__toast {
+  @apply rounded-lg shadow-lg border;
+}
+
+.Vue-Toastification__toast--success {
+  @apply bg-green-50 border-green-200 text-green-800;
+}
+
+.dark .Vue-Toastification__toast--success {
+  @apply bg-green-900/20 border-green-400/30 text-green-200;
+}
+
+.Vue-Toastification__toast--error {
+  @apply bg-red-50 border-red-200 text-red-800;
+}
+
+.dark .Vue-Toastification__toast--error {
+  @apply bg-red-900/20 border-red-400/30 text-red-200;
+}
+
+.Vue-Toastification__toast--warning {
+  @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+}
+
+.dark .Vue-Toastification__toast--warning {
+  @apply bg-yellow-900/20 border-yellow-400/30 text-yellow-200;
+}
+
+.Vue-Toastification__toast--info {
+  @apply bg-blue-50 border-blue-200 text-blue-800;
+}
+
+.dark .Vue-Toastification__toast--info {
+  @apply bg-blue-900/20 border-blue-400/30 text-blue-200;
+}
+
+.Vue-Toastification__close-button {
+  @apply text-gray-400 hover:text-gray-600;
+}
+
+.dark .Vue-Toastification__close-button {
+  @apply text-gray-500 hover:text-gray-300;
+}
+
+.Vue-Toastification__progress-bar {
+  @apply bg-current opacity-30;
+}
