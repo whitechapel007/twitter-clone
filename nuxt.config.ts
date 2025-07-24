@@ -9,7 +9,10 @@ export default defineNuxtConfig({
   modules: ["@prisma/nuxt"],
 
   prisma: {
-    autoSetupPrisma: false,
+    forcePush: false, // This prevents automatic db push
+    autoSetupPrisma: false, // This prevents auto-setup prompts
+    formatSchema: false,
+    installCLI: false,
   },
 
   // Ensure TypeScript support and auto-imports
@@ -20,6 +23,9 @@ export default defineNuxtConfig({
   // Define aliases for the lib folder outside app
   alias: {
     "@lib": fileURLToPath(new URL("./lib", import.meta.url)),
+  },
+  nitro: {
+    // Nitro-specific configuration can go here
   },
 
   vite: {
