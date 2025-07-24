@@ -6,14 +6,16 @@ export default defineNuxtConfig({
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   css: ["~/assets/main.css"],
-  modules: ["@prisma/nuxt"],
+  modules: [
+    // "@prisma/nuxt", // Disabled to prevent migration prompts
+  ],
 
-  prisma: {
-    autoSetupPrisma: false,
-    installStudio: false,
-    generateClient: true,
-    formatSchema: false,
-  },
+  // prisma: {
+  //   autoSetupPrisma: false,
+  //   installStudio: false,
+  //   generateClient: false,
+  //   formatSchema: false,
+  // },
 
   // Ensure TypeScript support and auto-imports
   typescript: {

@@ -7,7 +7,9 @@
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "prisma:push": "npx prisma db push"
+    "prisma:push": "npx prisma db push",
+    "prisma:generate": "npx prisma generate",
+    "postinstall": "npx prisma generate"
   },
   "dependencies": {
     "@heroicons/vue": "^2.2.0",
