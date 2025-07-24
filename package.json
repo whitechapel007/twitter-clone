@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx prisma db push --force-reset --accept-data-loss && npx prisma generate --schema=./prisma/schema.prisma && nuxt build",
+    "build": "printf 'n\\n' | npx prisma generate --schema=./prisma/schema.prisma && nuxt build",
     "dev": "npx prisma db push && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
