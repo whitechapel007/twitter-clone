@@ -3,11 +3,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "printf 'n\\n' | npx prisma generate --schema=./prisma/schema.prisma && nuxt build",
+    "build": "nuxt build",
+    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "dev": "npx prisma db push && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
     "prisma:push": "npx prisma db push"
   },
   "dependencies": {
