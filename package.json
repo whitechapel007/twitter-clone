@@ -4,7 +4,6 @@
   "type": "module",
   "scripts": {
     "build": "nuxt build",
-    "postinstall": "prisma generate --schema=./prisma/schema.prisma",
     "dev": "npx prisma db push && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
