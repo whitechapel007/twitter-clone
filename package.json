@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "npx prisma generate && nuxt build",
+    "build": "PRISMA_GENERATE_SKIP_AUTO_MIGRATE=true npx prisma generate && nuxt build",
     "dev": "npx prisma db push && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
