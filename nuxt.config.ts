@@ -9,13 +9,10 @@ export default defineNuxtConfig({
   modules: ["@prisma/nuxt"],
 
   prisma: {
-    client: {
-      enable: false,
-    },
-    seed: false, // This prevents automatic db push
-    autoSetupPrisma: false, // This prevents auto-setup prompts
+    autoSetupPrisma: false,
+    installStudio: false,
+    generateClient: true,
     formatSchema: false,
-    installCLI: false,
   },
 
   // Ensure TypeScript support and auto-imports
