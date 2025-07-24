@@ -1,6 +1,0 @@
-{
-  "buildCommand": "npm run vercel-build",
-  "scripts": {
-    "vercel-build": "CI=true npx prisma generate --schema=./prisma/schema.prisma && nuxt build"
-  }
-}
